@@ -29,12 +29,67 @@
     </div>
 
 <script>
-  const msg = new SpeechSynthesisUtterance();
-  let voices = [];
-  const voicesDropdown = document.querySelector('[name="voice"]');
-  const options = document.querySelectorAll('[type="range"], [name="text"]');
-  const speakButton = document.querySelector('#speak');
-  const stopButton = document.querySelector('#stop');
+  // Initialize utterance object
+const msg = new SpeechSynthesisUtterance();
+let voices = [];
+const voicesDropdown = document.querySelector('[name="voice"]');
+const options = document.querySelectorAll('[type="range"], [name="text"]');
+const speakButton = document.querySelector('#speak');
+const stopButton = document.querySelector('#stop');
+
+// Function to populate voices
+function populateVoices() {
+  voices = speechSynthesis.getVoices();
+  if (!voices.length) {
+    voicesDropdown.innerHTML = `<option>No voices available</option>`;
+    return;
+  }
+
+  voicesDropdown.innerHTML = voices
+    .map(voice => `<option value="${voice.name}">${voice.name} (${voice.lang})</option>`)
+    .join('');
+}
+
+// Set selected voice
+function setVoice() {
+  msg.voice = voices.find(voice => voice.name === this.value);
+  restart();
+}
+
+// Speak the message
+function speak() {
+  if (!msg.text.trim()) return;
+  speechSynthesis.speak(msg);
+}
+
+// Stop the message
+function stop() {
+  speechSynthesis.cancel();
+}
+
+// Restart speech
+function restart() {
+  stop();
+  speak();
+}
+
+// Handle input changes
+function setOption() {
+  msg[this.name] = this.value;
+  restart();
+}
+
+// Bind events
+speechSynthesis.addEventListener('voiceschanged', populateVoices);
+voicesDropdown.addEventListener('change', setVoice);
+options.forEach(option => option.addEventListener('change', setOption));
+speakButton.addEventListener('click', speak);
+stopButton.addEventListener('click', stop);
+
+// Set default text and fetch voices
+msg.text = document.querySelector('[name="text"]').value;
+populateVoices();
+
 
   //Your code goes here
 </script>
